@@ -1,3 +1,14 @@
+/* main.js updates */
+
+// Detect if the device is mobile
+var isMobile = window.innerWidth < 768;
+
+// Adjust variables based on screen size
+var radius = isMobile ? 150 : 240; // Smaller radius for mobile
+var imgWidth = isMobile ? 90 : 120; // Smaller images for mobile
+var imgHeight = isMobile ? 130 : 170; 
+var rotateSpeed = -60; 
+var autoRotate = true;
 /* love/main.js */
 var radius = 240; 
 var autoRotate = true; 
@@ -23,19 +34,17 @@ ground.style.height = radius * 3 + "px";
 
 function init(delayTime) {
   for (var i = 0; i < aEle.length; i++) {
-    // --- HEART SHAPE FORMAT ---
+    // --- CIRCULAR FORMAT ---
+    // Calculate the angle for each image to spread them evenly in a circle
     var angle = (i / aEle.length) * Math.PI * 2;
-    var x = 19 * Math.pow(Math.sin(angle), 3);
-    var z = 15 * Math.cos(angle) - 5 * Math.cos(2 * angle) - 2 * Math.cos(3 * angle) - Math.cos(4 * angle);
-    var scaleFactor = 15; 
     
-    // Position the images in a heart shape
-    aEle[i].style.transform = `translateX(${x * scaleFactor}px) translateZ(${z * scaleFactor}px) rotateY(${angle * 180 / Math.PI + 180}deg)`;
+    // Position the images in a perfect circle using the radius variable
+    aEle[i].style.transform = `rotateY(${angle * 180 / Math.PI}deg) translateZ(${radius}px)`;
+    
     aEle[i].style.transition = "transform 1s";
     aEle[i].style.transitionDelay = delayTime || (aEle.length - i) / 4 + "s";
   }
 }
-
 function applyTranform(obj) {
   if(tY > 180) tY = 180;
   if(tY < 0) tY = 0;
@@ -104,7 +113,7 @@ if(gl){
     uniform float time;
     #define POINT_COUNT 8
     vec2 points[POINT_COUNT];
-    const float speed = -0.5; const float len = 0.25; float intensity = 1.3; float radius = 0.008;
+    const float speed = -0.1; const float len = 0.25; float intensity = 1.3; float radius = 0.008;
     float sdBezier(vec2 pos, vec2 A, vec2 B, vec2 C){    
         vec2 a = B - A; vec2 b = A - 2.0*B + C; vec2 c = a * 2.0; vec2 d = A - pos;
         float kk = 1.0 / dot(b,b); float kx = kk * dot(a,b); float ky = kk * (2.0*dot(a,a)+dot(d,b)) / 3.0; float kz = kk * dot(d,a);      
@@ -122,13 +131,33 @@ if(gl){
         return max(0.0, dist);
     }
     void main(){
-        vec2 uv = gl_FragCoord.xy/resolution.xy; float widthHeightRatio = resolution.x/resolution.y;
-        vec2 centre = vec2(0.5, 0.5); vec2 pos = centre - uv; pos.y /= widthHeightRatio; pos.y += 0.02; float scale = 0.000015 * height; float t = time;
-        float dist = getSegment(t, pos, 0.0, scale); float glow = getGlow(dist, radius, intensity);
-        vec3 col = vec3(0.0); col += 10.0*vec3(smoothstep(0.003, 0.001, dist)); col += glow * vec3(1.0,0.05,0.3);
-        dist = getSegment(t, pos, 3.4, scale); glow = getGlow(dist, radius, intensity);
-        col += 10.0*vec3(smoothstep(0.003, 0.001, dist)); col += glow * vec3(0.1,0.4,1.0);
-        col = 1.0 - exp(-col); col = pow(col, vec3(0.4545)); gl_FragColor = vec4(col,1.0);
+        vec2 uv = gl_FragCoord.xy/resolution.xy; 
+        float widthHeightRatio = resolution.x/resolution.y;
+        vec2 centre = vec2(0.5, 0.5); 
+        vec2 pos = centre - uv; 
+        pos.y /= widthHeightRatio; 
+        
+        // Adjust this value to move the heart up or down (e.g., 0.05 moves it higher)
+        pos.y += 0.02; 
+        
+        // Reduce the multiplier here to decrease the overall height/size of the heart
+        float scale = 0.000030 * height; 
+        
+        float t = time;
+        float dist = getSegment(t, pos, 0.0, scale); 
+        float glow = getGlow(dist, radius, intensity);
+        vec3 col = vec3(0.0); 
+        col += 10.0*vec3(smoothstep(0.003, 0.001, dist)); 
+        col += glow * vec3(1.0,0.05,0.3);
+        
+        dist = getSegment(t, pos, 3.4, scale); 
+        glow = getGlow(dist, radius, intensity);
+        col += 10.0*vec3(smoothstep(0.003, 0.001, dist)); 
+        col += glow * vec3(0.1,0.4,1.0);
+        
+        col = 1.0 - exp(-col); 
+        col = pow(col, vec3(0.4545)); 
+        gl_FragColor = vec4(col,1.0);
     }
     `;
     function compileShader(src, type){ var shader = gl.createShader(type); gl.shaderSource(shader, src); gl.compileShader(shader); return shader; }

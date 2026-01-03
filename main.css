@@ -189,3 +189,68 @@ p {
     z-index: 999; /* On top of everything (transparent background) */
     pointer-events: none; /* Let clicks pass through to the 3D spinner */
 }
+/* main.css */
+
+#welcome-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #ffffff; /* Matches your body background */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000; /* Ensure it's above everything */
+    transition: opacity 1s ease-out;
+}
+
+#surprise-btn {
+    padding: 15px 30px;
+    font-family: "Pacifico", sans-serif;
+    font-size: 24px;
+    background-color: #ff004c;
+    color: white;
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(255, 0, 76, 0.3);
+    transition: transform 0.3s;
+}
+
+#surprise-btn:hover {
+    transform: scale(1.1);
+}
+
+#loved-text {
+    font-family: "Pacifico", sans-serif;
+    font-size: 48px;
+    color: #ff004c;
+    animation: lovedAnimation 2s forwards;
+}
+
+@keyframes lovedAnimation {
+    0% { transform: scale(0.5); opacity: 0; }
+    50% { transform: scale(1.2); opacity: 1; }
+    100% { transform: scale(1); opacity: 0; }
+}
+/* main.css additions */
+
+/* Responsive adjustment for the Welcome Page */
+@media screen and (max-width: 658px) {
+    #surprise-btn {
+        font-size: 18px; /* Smaller button text for mobile */
+        padding: 12px 24px;
+    }
+
+    #loved-text {
+        font-size: 32px; /* Smaller "You are loved" text */
+        width: 80%;
+        text-align: center;
+    }
+}
+
+/* Ensure the 3D containers take up the full mobile viewport */
+#drag-container, #spin-container {
+    touch-action: none; /* Prevents page scrolling while interacting with the gallery */
+}
