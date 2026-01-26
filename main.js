@@ -1,8 +1,8 @@
 /* love/main.js */
 // --- CONFIGURATION ---
 var radius = 240; 
-var imgWidth = 160; 
-var imgHeight = 250; 
+var imgWidth = 140; 
+var imgHeight = 200; 
 var tunnelSpeed = 2;   
 var tunnelDepth = 1500; 
 
@@ -67,13 +67,11 @@ document.body.addEventListener('click', function() {
 
 
 // --- HELPER: PINK/PURPLE PALETTE ---
-// This formula ensures colors stay in the Pink -> Purple -> Red range
 function palette(t) {
-    // Custom Palette Vectors for Pink/Purple themes
-    var a = {r:0.8, g:0.0, b:0.5}; // Base Color (Magenta-ish)
-    var b = {r:0.2, g:0.1, b:0.4}; // Variation Strength
-    var c = {r:1.0, g:1.0, b:1.0}; // Frequency
-    var d = {r:0.0, g:0.33, b:0.67}; // Phase
+    var a = {r:0.8, g:0.0, b:0.5}; 
+    var b = {r:0.2, g:0.1, b:0.4}; 
+    var c = {r:1.0, g:1.0, b:1.0}; 
+    var d = {r:0.0, g:0.33, b:0.67}; 
 
     var r = a.r + b.r * Math.cos(6.28318 * (c.r * t + d.r));
     var g = a.g + b.g * Math.cos(6.28318 * (c.g * t + d.g));
@@ -99,6 +97,7 @@ function getHeartCoords(angle, scale) {
 function arrangeInHeart() {
   for (var i = 0; i < aEle.length; i++) {
     var el = aEle[i];
+    el.style.willChange = "transform, opacity, box-shadow"; // PERFORMANCE FIX
     el.style.transition = "transform 2s ease-in-out, opacity 2s"; 
     el.zPos = 0; 
     el.angle = (i / aEle.length) * Math.PI * 2; 
@@ -139,24 +138,19 @@ function updateImagePosition(el) {
     el.style.opacity = opacity;
     el.style.transform = `translate3d(${coords.x - imgWidth/2}px, ${coords.y - imgHeight/2}px, ${el.zPos}px)`;
 
-    // --- PINK AURA REACTION ---
-    
-    // 1. Get Pink/Purple Color based on time
+    // --- PINK AURA REACTION (OPTIMIZED) ---
     var col = palette(el.angle * 0.5 + globalTime * 0.5);
-    
     var beatStrength = globalBeat * 1.5; 
     if (beatStrength > 1) beatStrength = 1; 
 
-    // 2. Aura Size
-    var blurRadius = 5 + (beatStrength * 60); 
-    var spreadRadius = 2 + (beatStrength * 30);
+    // Reduced blur limits to prevent rendering "blink" glitches
+    var blurRadius = 5 + (beatStrength * 30);  // Reduced from 60
+    var spreadRadius = 1 + (beatStrength * 10); // Reduced from 30
     
     var alpha = 0.6 + (beatStrength * 0.4); 
     
-    // 3. Apply Shadow (Using the calculated Pink color)
     el.style.boxShadow = `
-        0px 0px ${blurRadius}px ${spreadRadius}px rgba(${col.r}, ${col.g}, ${col.b}, ${alpha}),
-        0px 0px ${blurRadius * 0.5}px ${spreadRadius * 0.5}px rgba(255, 255, 255, ${alpha * 0.5})
+        0px 0px ${blurRadius}px ${spreadRadius}px rgba(${col.r}, ${col.g}, ${col.b}, ${alpha})
     `;
 }
 
@@ -176,10 +170,15 @@ function animateTunnel() {
     requestAnimationFrame(animateTunnel);
 }
 
-setTimeout(() => {
-    arrangeInHeart(); 
-    setTimeout(startSpreading, 3000); 
-}, 100);
+// --- SEQUENCE CONTROLLER (WAIT FOR LOAD) ---
+// Wait for images to load before starting animation
+window.onload = function() {
+    // Start immediately after load
+    setTimeout(() => {
+        arrangeInHeart(); 
+        setTimeout(startSpreading, 3000); 
+    }, 100);
+};
 
 // --- INTERACTION ---
 document.onpointerdown = function (e) {
@@ -231,9 +230,7 @@ if (gl) {
         return length( pa - ba*h );
     }
 
-    // --- CUSTOM PINK/PURPLE PALETTE SHADER ---
     vec3 palette( in float t ) {
-        // High Red, Low Green, Variable Blue
         vec3 a = vec3(0.8, 0.0, 0.5); 
         vec3 b = vec3(0.2, 0.1, 0.4); 
         vec3 c = vec3(1.0, 1.0, 1.0);
@@ -270,7 +267,6 @@ if (gl) {
         float angle = atan(pos.y, pos.x);
         vec3 color = palette(angle * 0.5 + time * 0.5);
         
-        // Add brightness on beat
         color += beat * 0.5;
         
         vec3 finalColor = color * glowIntensity;
