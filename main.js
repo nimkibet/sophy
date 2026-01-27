@@ -16,6 +16,7 @@ var ospin = document.getElementById('spin-container');
 var aImg = ospin.getElementsByTagName('img');
 var aVid = ospin.getElementsByTagName('video');
 var aEle = [...aImg, ...aVid]; 
+var nimrodText = document.getElementById('nimrod-text'); // New Text Element
 
 // --- SIZING ---
 ospin.style.width = imgWidth + "px";
@@ -97,7 +98,7 @@ function getHeartCoords(angle, scale) {
 function arrangeInHeart() {
   for (var i = 0; i < aEle.length; i++) {
     var el = aEle[i];
-    el.style.willChange = "transform, opacity, box-shadow"; // PERFORMANCE FIX
+    el.style.willChange = "transform, opacity, box-shadow"; 
     el.style.transition = "transform 2s ease-in-out, opacity 2s"; 
     el.zPos = 0; 
     el.angle = (i / aEle.length) * Math.PI * 2; 
@@ -138,14 +139,14 @@ function updateImagePosition(el) {
     el.style.opacity = opacity;
     el.style.transform = `translate3d(${coords.x - imgWidth/2}px, ${coords.y - imgHeight/2}px, ${el.zPos}px)`;
 
-    // --- PINK AURA REACTION (OPTIMIZED) ---
+    // --- AURA REACTION ---
     var col = palette(el.angle * 0.5 + globalTime * 0.5);
     var beatStrength = globalBeat * 1.5; 
     if (beatStrength > 1) beatStrength = 1; 
 
-    // Reduced blur limits to prevent rendering "blink" glitches
-    var blurRadius = 5 + (beatStrength * 30);  // Reduced from 60
-    var spreadRadius = 1 + (beatStrength * 10); // Reduced from 30
+    // Optimized blur levels
+    var blurRadius = 5 + (beatStrength * 30);  
+    var spreadRadius = 1 + (beatStrength * 10); 
     
     var alpha = 0.6 + (beatStrength * 0.4); 
     
@@ -156,6 +157,22 @@ function updateImagePosition(el) {
 
 function animateTunnel() {
     globalTime += 0.005; 
+
+    // --- NIMROD TEXT REACTION ---
+    if(nimrodText) {
+        // Pulse Scale: 1.0 (base) -> 1.2 (on beat)
+        var scale = 1.0 + (globalBeat * 0.2);
+        
+        // Glow Intensity: 5px (base) -> 20px (on beat)
+        var glow = 5 + (globalBeat * 15);
+        
+        nimrodText.style.transform = `translateX(-50%) scale(${scale})`;
+        nimrodText.style.textShadow = `
+            0 0 5px #fff,
+            0 0 ${glow}px #ff00de,
+            0 0 ${glow * 2}px #ff00de
+        `;
+    }
 
     for (var i = 0; i < aEle.length; i++) {
         var el = aEle[i];
@@ -170,15 +187,22 @@ function animateTunnel() {
     requestAnimationFrame(animateTunnel);
 }
 
-// --- SEQUENCE CONTROLLER (WAIT FOR LOAD) ---
-// Wait for images to load before starting animation
-window.onload = function() {
-    // Start immediately after load
-    setTimeout(() => {
-        arrangeInHeart(); 
-        setTimeout(startSpreading, 3000); 
-    }, 100);
+/* love/main.js - Update the Sequence Controller Section */
+
+// --- SEQUENCE CONTROLLER ---
+// We wrap this in a global function so index.html can call it exactly when needed
+window.startSequence = function() {
+    console.log("Starting animation sequence...");
+    
+    // 1. Form the Heart Shape immediately
+    arrangeInHeart(); 
+    
+    // 2. Wait 3 seconds, then start spreading into the tunnel
+    setTimeout(startSpreading, 3000); 
 };
+
+// REMOVED: window.onload = ... 
+// We no longer auto-start on load. We wait for the click in index.html.
 
 // --- INTERACTION ---
 document.onpointerdown = function (e) {
@@ -204,7 +228,7 @@ document.onmousewheel = function(e) {
 };
 
 
-// --- WEBGL SHADER (PINK/PURPLE EDITION) ---
+// --- WEBGL SHADER ---
 var canvas = document.getElementById("webgl-canvas"); 
 var gl = canvas.getContext('webgl');
 

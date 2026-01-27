@@ -276,3 +276,26 @@ p {
 #drag-container, #spin-container {
     touch-action: none; /* Prevents page scrolling while interacting with the gallery */
 }
+/* Add to main.css */
+#nimrod-text {
+    position: fixed;
+    bottom: 30px; /* Positioned at the bottom center */
+    left: 50%;
+    transform: translateX(-50%);
+    
+    font-family: 'Playfair Display', serif; /* Matching your classic font */
+    font-size: 24px;
+    letter-spacing: 3px;
+    color: #fff;
+    
+    /* Default Neon Glow */
+    text-shadow: 
+        0 0 5px #fff,
+        0 0 10px #ff00de,
+        0 0 20px #ff00de,
+        0 0 40px #ff00de;
+        
+    z-index: 100; /* Ensure it stays on top */
+    pointer-events: none; /* Let clicks pass through */
+    transition: transform 0.1s ease-out; /* Smooth pulse movement */
+}

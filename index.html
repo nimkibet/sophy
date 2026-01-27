@@ -16,9 +16,7 @@
         </div>
     </div>
 
-    <div id="drag-container">
-        </div>
-    <div id="drag-container">
+        <div id="drag-container">
         <div id="spin-container">
             <img src="./images/r1.jpeg" alt="">
             <img src="./images/r2.jpeg" alt="">
@@ -36,6 +34,8 @@
         </div>
         <div id="ground"></div>
     </div>
+    <div id="nimrod-text">From Nimrod</div>
+
     
     <canvas id="webgl-canvas"></canvas>
 
@@ -47,30 +47,57 @@
 
     <script src="main.js"></script>
 
-    <script>
-       // Add this to your main.js or the script block in index.html
-/* Update the script in index.html */
-window.addEventListener('load', function() {
-    var audio = document.getElementById("myAudio");
-    var btn = document.getElementById('surprise-btn');
-    var overlay = document.getElementById('welcome-overlay');
-    var lovedText = document.getElementById('loved-text');
+   <script>
+    // 1. Pre-load the main script to ensure functions are ready
+    var script = document.createElement('script');
+    script.src = "love/main.js"; 
+    document.body.appendChild(script);
 
-    btn.addEventListener('click', function() {
-        audio.play(); // Play music
-        
-        btn.style.display = 'none';
-        lovedText.style.display = 'block';
+    window.addEventListener('load', function() {
+        var btn = document.getElementById('surprise-btn');
+        var overlay = document.getElementById('welcome-overlay');
+        var nimrodText = document.getElementById('nimrod-text');
+        var audio = document.getElementById("myAudio");
 
-        // Wait for the text animation to play, then reveal the site
-        setTimeout(() => {
+        // Hide the "From Nimrod" text initially so it doesn't overlap the welcome screen
+        if(nimrodText) nimrodText.style.opacity = '0';
+
+        btn.addEventListener('click', function() {
+            // A. Immediate Visual Feedback: Disable button to prevent double clicks
+            btn.style.pointerEvents = 'none';
+            btn.innerHTML = "Opening..."; // Optional: Change text to show action
+            btn.style.opacity = '0.7';
+
+            // B. Start Audio (This is what usually lags, so we wrap it)
+            if (window.setupAudioContext) {
+                // Try to start audio, but don't let it block the UI fade
+                setTimeout(() => window.setupAudioContext(), 10);
+            } else if(audio) {
+                audio.play().catch(e => console.log("Audio play blocked", e));
+            }
+
+            // C. Fade Out Overlay Smoothly
+            overlay.style.transition = "opacity 1.5s ease-out";
             overlay.style.opacity = '0';
-            setTimeout(() => {
+            
+            // D. Reveal the Site content
+            setTimeout(function() {
                 overlay.style.display = 'none';
-            }, 1000);
-        }, 2000);
-    }, { once: true });
-});
-    </script>
+                
+                // Fade in the Nimrod text now that the site is visible
+                if(nimrodText) {
+                    nimrodText.style.transition = "opacity 2s ease-in";
+                    nimrodText.style.opacity = '1';
+                }
+                
+                // Trigger the heart animation sequence (from main.js)
+                if (window.startSequence) {
+                    window.startSequence();
+                }
+            }, 1500); // Matches the CSS transition time
+            
+        }, { once: true });
+    });
+</script>
 </body>
 </html>
